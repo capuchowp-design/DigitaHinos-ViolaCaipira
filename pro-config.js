@@ -1,7 +1,7 @@
 // ===== CONFIGURAÇÃO DO MODO PRO — edite só este arquivo =====
 window.PRO_CFG = {
   app: 'viola',                                  // nome do app (aparece na planilha)
-  scriptUrl: 'https://script.google.com/macros/s/AKfycby1gjVjWW5iy7rhaRxYEJlwlbhKhQUCRt-2EcqlB3sQA8xO-tf0cB7cqk0zR_TITmlH7g/exec',
+  scriptUrl: 'https://script.google.com/macros/s/AKfycbxRXEg3fvpr2TrD_YpG3ntdJiect5irk5brD52sNsdMQQTJdkbqGZMglVif0fWtx5OE/exec',
   pixKey: 'meuidwp@duck.com',                   // chave Pix (e-mail)
   pixName: 'WESLEY PHILIP A CAPUCHO',           // nome do recebedor (até 25 letras, sem acento)
   pixCity: 'SAO SEBASTIAO',                     // cidade (até 15 letras, sem acento)

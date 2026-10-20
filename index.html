@@ -2000,6 +2000,7 @@ function proPixPayload(){
 // ---- interface ----
 function proRefresh(){
     const b=document.getElementById('proBtn'); if(b){ b.textContent=PRO.ok?'✓ Pro':'⭐ Pro'; b.classList.toggle('pro-on',PRO.ok); }
+    const pb=document.getElementById('vgPdfBtn'); if(pb) pb.textContent=PRO.ok?'📄 PDF':'🔒 PDF';
     try{ if(typeof renderHinos==='function'&&!document.getElementById('mHinos').hidden) renderHinos(); }catch(e){}
     try{ updateUI(); }catch(e){}
     if(!document.getElementById('mPro').hidden) proRender();
@@ -2017,14 +2018,14 @@ async function proRender(){
     const price=PRO_CFG.price>0?'R$ '+Number(PRO_CFG.price).toFixed(2).replace('.',','):'';
     if(PRO.ok){
         const dev=PRO.dev?PRO.dev.slice(0,10)+'…':'';
-        box.innerHTML='<div class="pro-ok">✓ Pro ativo neste aparelho</div><p class="pro-p">Todos os hinos estão liberados, completos e com qualquer voz.</p><p class="pro-p pro-small">Código: <b></b><br>Aparelho: '+dev+'<br>O acesso continua mesmo se você desinstalar o app ou limpar os dados (basta digitar o mesmo código neste aparelho, ou ele é restaurado sozinho no app instalado). O código não funciona em outro aparelho.</p>';
+        box.innerHTML='<div class="pro-ok">✓ Pro ativo neste aparelho</div><p class="pro-p">Todos os hinos estão liberados, completos e com qualquer voz, e o PDF da tablatura está disponível (botão 📄 PDF no player).</p><p class="pro-p pro-small">Código: <b></b><br>Aparelho: '+dev+'<br>O acesso continua mesmo se você desinstalar o app ou limpar os dados (basta digitar o mesmo código neste aparelho, ou ele é restaurado sozinho no app instalado). O código não funciona em outro aparelho.</p>';
         box.querySelector('b').textContent=PRO.code; return;
     }
-    const msgTop=proReason==='fim'?'Fim da prévia de '+PRO_CFG.previewSec+' segundos.':proReason==='seek'?'A prévia grátis toca só os primeiros '+PRO_CFG.previewSec+' segundos.':'';
+    const msgTop=proReason==='fim'?'Fim da prévia de '+PRO_CFG.previewSec+' segundos.':proReason==='seek'?'A prévia grátis toca só os primeiros '+PRO_CFG.previewSec+' segundos.':proReason==='pdf'?'O PDF da tablatura é exclusivo do modo Pro.':'';
     const configured=/^https?:/.test(PRO_CFG.scriptUrl)&&PRO_CFG.pixKey&&PRO_CFG.pixKey!=='SUA_CHAVE_PIX';
     let dev=''; try{ dev=await proDevice(); }catch(e){}
     box.innerHTML=(msgTop?'<div class="pro-top">'+msgTop+'</div>':'')+
-      '<p class="pro-p"><b>Grátis:</b> hinos 1 a '+PRO_CFG.freeHinos+' completos e '+PRO_CFG.previewSec+' s de prévia nos demais (todas as vozes).<br><b>Pro:</b> todos os hinos completos, com qualquer voz. Pagamento único via Pix'+(price?' · <b>'+price+'</b>':'')+'.</p>'+
+      '<p class="pro-p"><b>Grátis:</b> hinos 1 a '+PRO_CFG.freeHinos+' completos e '+PRO_CFG.previewSec+' s de prévia nos demais (todas as vozes).<br><b>Pro:</b> todos os hinos completos, com qualquer voz, e download do PDF da tablatura (não há amostra no modo grátis). Pagamento único via Pix'+(price?' · <b>'+price+'</b>':'')+'.</p>'+
       (configured?'':'<p class="pro-p pro-warn">Atenção: o dono do app ainda não preencheu o arquivo pro-config.js (chave Pix e endereço do script).</p>')+
       '<div class="pro-step"><span>1</span><div><b>Pague via Pix</b><div class="pro-row"><button class="pro-btn" id="proCopyPix">Copiar Pix copia e cola</button><button class="pro-btn sec" id="proCopyKey">Copiar chave</button></div><div class="pro-small" id="proKeyTxt"></div></div></div>'+
       '<div class="pro-step"><span>2</span><div><b>Envie o comprovante</b><div class="pro-row"><a class="pro-btn" id="proWa" target="_blank" rel="noopener">Enviar no WhatsApp</a></div><div class="pro-small">Você recebe um código de uso único.</div></div></div>'+
@@ -2905,7 +2906,10 @@ window.addEventListener('DOMContentLoaded',()=>{
     const tsel=document.createElement('select'); tsel.id='vgTun'; tsel.className='vgTunSel'; tsel.setAttribute('aria-label','Afinação da viola'); tsel.title='Afinação da viola'; tsel.style.cssText=sty+';max-width:48%';
     Object.entries(TUNINGS).forEach(([k,v])=>{ const o=document.createElement('option'); o.value=k; o.textContent=v.n; tsel.appendChild(o); });
     tsel.value=TUN_KEY; tsel.addEventListener('change',()=>window.vbSetTuning(tsel.value));
-    bar.append(bh,bz,tsel,sel); box.appendChild(bar); paint();
+    const bp=mk('vgPdfBtn','🔒 PDF','Baixar o PDF da tablatura desta versão (exclusivo do modo Pro)');
+    bp.onclick=()=>{ if(!PRO.ok){ proPaywall('pdf'); return; } if(window.vbExportPdf) window.vbExportPdf(); };
+    bar.style.flexWrap='wrap'; bar.style.justifyContent='flex-end';
+    bar.append(bh,bz,bp,tsel,sel); box.appendChild(bar); paint(); try{ proRefresh(); }catch(e){}
 });
 
 
@@ -4954,6 +4958,36 @@ $('impGo').onclick=()=>{
     impParsed=null;
 };
 
+/* ---------- PDF da tablatura da versão que está no player (exclusivo do modo Pro) ---------- */
+function playerToScoreNotes(){
+    const nl=state.notes||[]; if(!nl.length) return null;
+    const ms=state.src&&state.src.measures; let toQ=t=>t/0.5, bpm=120, ts='4/4';
+    if(ms&&ms.length){
+        const cum=[]; let c=0; ms.forEach(m=>{ cum.push(c); c+=m.q; });
+        toQ=t=>{ let i=ms.length-1; for(let k=0;k<ms.length;k++){ if(t<ms[k].e-1e-6){ i=k; break; } } const m=ms[i]; return Math.max(0,cum[i]+(t-m.s)/(m.e-m.s)*m.q); };
+        bpm=Math.max(20,Math.min(300,Math.round(60*c/Math.max(.1,ms[ms.length-1].e-ms[0].s))));
+        const k=(ms[0].beats||4)+'/'+(ms[0].bt||4); if(['4/4','3/4','2/4','6/8'].includes(k)) ts=k;
+    }
+    const sn=nl.map(n=>{ const f=gFixOf(n), a=toQ(n.startTime), b=toQ(n.endTime);
+        return {midi:n.midi,beat:1+a,duration:Math.max(.125,b-a),velocity:90,voice:n.track|0,accidental:0,dotted:false,dotted2:false,tied:false,articulations:[],ts:f?f.s:undefined,tf:f?f.fret:undefined}; });
+    return {sn,bpm,ts};
+}
+async function exportPlayerPdf(){
+    if(!PRO.ok){ proPaywall('pdf'); return; }
+    const r=playerToScoreNotes(); if(!r){ say('Carregue um hino ou uma música primeiro'); return; }
+    const saved=scoreNotes.slice(), tsSel=$('scoreTimeSig'), bpmI=$('scoreBpm'), oldTs=tsSel.value, oldBpm=bpmI.value;
+    busy(true);
+    try{
+        scoreNotes.length=0; r.sn.forEach(x=>scoreNotes.push(x)); tsSel.value=r.ts; bpmI.value=r.bpm;
+        const title=(fileNameEl.textContent||'').trim()||'Tablatura';
+        const data=pbBuildScore({title,mode:'tab'});
+        const pgs=[]; for(const svg of data.svgs) pgs.push(await svgToJpeg(svg,data.W,data.H,2.6));
+        download(safeName(title)+' - tablatura.pdf',makePdf(pgs));
+        say('PDF da tablatura baixado',true);
+    }catch(e){ console.error(e); say('Não foi possível gerar o PDF'); }
+    finally{ scoreNotes.length=0; saved.forEach(x=>scoreNotes.push(x)); tsSel.value=oldTs; bpmI.value=oldBpm; busy(false); }
+}
+window.vbExportPdf=exportPlayerPdf;
 window.__pb={pbBuildScore,renderWav,wavBlob,makePdf,svgToJpeg,snapshot,apply,quickSave,saveLibrary,idbOp,importFile,sampleBank};
 })();
 

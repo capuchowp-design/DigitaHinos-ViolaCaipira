@@ -18,3 +18,6 @@ Visualizador/compositor MIDI com **viola caipira** animada (10 cordas = 5 ordens
 - GitHub Pages: suba os arquivos. A cada versão nova, mude `CACHE_NAME` em `sw.js` (agora `viola-bounce-v1`).
 - APK: workflow `.github/workflows/build-apk.yml` (Capacitor), appId `io.github.capuchowpdesign.violabounce`.
 - Modo Pro: `pro-config.js` usa `app: 'viola'`; a planilha/Apps Script precisa aceitar esse nome de app.
+
+## PDF da tablatura (exclusivo Pro)
+Botão **📄 PDF** no player: baixa a tablatura da versão que está tocando (voz, tom, afinação e estilo escolhidos). No modo grátis o botão (🔒) só abre a tela do Pro; não há amostra.
