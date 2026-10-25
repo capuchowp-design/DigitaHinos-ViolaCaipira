@@ -1,4 +1,4 @@
-# Viola Bounce
+# DigitaHinos ViolaCaipira
 
 Visualizador/compositor MIDI com **viola caipira** animada (10 cordas = 5 ordens de cordas duplas), derivado do Violão Bounce: biblioteca de hinos, escolha de voz, tom automático, acompanhamento (acordes + baixo, estilo básico ou dedilhado), mão esquerda animada, compositor de tablatura, exportação WAV/MIDI/JSON/PDF e modo Pro.
 

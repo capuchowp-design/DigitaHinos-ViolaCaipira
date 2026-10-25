@@ -1,6 +1,6 @@
 {
-  "name": "Viola Bounce - Visualizador MIDI",
-  "short_name": "Viola Bounce",
+  "name": "DigitaHinos ViolaCaipira - Visualizador MIDI",
+  "short_name": "DigitaHinos ViolaCaipira",
   "description": "Visualizador MIDI com viola caipira animada",
   "start_url": "./index.html",
   "display": "standalone",
